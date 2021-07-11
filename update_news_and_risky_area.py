@@ -76,6 +76,7 @@ class News(object):
     title: str
     link: str
     time: int
+    content: str
     type: str  # enum "msg" | "gov"; # 可能不会用到这些type，取决于数据能否整理出
 
 
@@ -308,15 +309,16 @@ def update_baidu_news(s):
     return ns_list
 
 
-def get_isaa_news():
-    url = isaa_host + '/nCoV/api/news?page=1&num=100'
+url = isaa_host + '/nCoV/api/news?page=1&num=100'
     r = requests.get(url)
     newses = r.json()['results']
+    # print(newses)
     ns_list = []
     for news in newses:
         ns = News()
         ns.title = news['title']
         ns.link = news['sourceUrl']
+        ns.content = news['summary']
         ns.id = f"news_{sha_256(ns.link.encode())}"
         ns.type = 'msg'
         ns.time = news['pubDate']
@@ -335,10 +337,10 @@ def update_isaa_news(s):
 
 
 def update_news(s):
-    baidu_news = update_baidu_news(s)
+    # baidu_news = update_baidu_news(s)
     isaa_news = update_isaa_news(s)
-    baidu_news.extend(isaa_news)
-    save_json(f'../news_{datetime.now().date()}.json', baidu_news)
+    # baidu_news.extend(isaa_news)
+    # save_json(f'../news_{datetime.now().date()}.json', baidu_news)
 
 
 def run():
