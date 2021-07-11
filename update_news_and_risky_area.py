@@ -222,7 +222,7 @@ def update_gov_reports(s):
         print(f"[{datetime.now()}] update gov news Done")
     else:
         print(f"[{datetime.now()}] update gov news Failed -- {resp.status_code}")
-    # save_json(f'../data/gov_news_{datetime.now().date()}.json', gov_news_list)
+    save_json(f'../data/gov_news_{datetime.now().date()}.json', gov_news_list)
     return gov_news_list
 
 
@@ -338,7 +338,7 @@ def update_news(s):
     baidu_news = update_baidu_news(s)
     isaa_news = update_isaa_news(s)
     baidu_news.extend(isaa_news)
-    # save_json(f'../news_{datetime.now().date()}.json', baidu_news)
+    save_json(f'../news_{datetime.now().date()}.json', baidu_news)
 
 
 def run():
@@ -351,4 +351,3 @@ def run():
 if __name__ == '__main__':
     run()
 
-    pass
