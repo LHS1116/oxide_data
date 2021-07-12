@@ -76,7 +76,6 @@ class News(object):
     title: str
     link: str
     time: int
-    content: str
     type: str  # enum "msg" | "gov"; # 可能不会用到这些type，取决于数据能否整理出
 
 
@@ -301,15 +300,16 @@ def update_baidu_news(s):
         ns.type = 'msg'
         ns.id = f"news_{sha_256(ns.link.encode())}"
         ns_list.append(ns.__dict__)
-    resp = insert_instance_list(s, 'news', ns_list)
-    if resp.status_code != 200:
-        print(f"[{datetime.now()}] update_baidu_news Failed -- {resp.status_code}")
-    else:
-        print(f"[{datetime.now()}] update_baidu_news Done")
+    # resp = insert_instance_list(s, 'news', ns_list)
+    # if resp.status_code != 200:
+    #     print(f"[{datetime.now()}] update_baidu_news Failed -- {resp.status_code}")
+    # else:
+    #     print(f"[{datetime.now()}] update_baidu_news Done")
     return ns_list
 
 
-url = isaa_host + '/nCoV/api/news?page=1&num=100'
+def get_isaa_news():
+    url = isaa_host + '/nCoV/api/news?page=1&num=100'
     r = requests.get(url)
     newses = r.json()['results']
     # print(newses)
@@ -337,10 +337,10 @@ def update_isaa_news(s):
 
 
 def update_news(s):
-    # baidu_news = update_baidu_news(s)
+    baidu_news = update_baidu_news(s)
     isaa_news = update_isaa_news(s)
-    # baidu_news.extend(isaa_news)
-    # save_json(f'../news_{datetime.now().date()}.json', baidu_news)
+    baidu_news.extend(isaa_news)
+    save_json(f'../news_{datetime.now().date()}.json', baidu_news)
 
 
 def run():
@@ -351,5 +351,7 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
-
+    # run()
+    update_baidu_news()
+    ns = get_isaa_news()
+    insert_instance_list(get_session(), 'news', ns)
