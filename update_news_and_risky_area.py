@@ -360,4 +360,4 @@ if __name__ == '__main__':
         except Exception as e:
             trace_back = sys.exc_info()[2]
             traceback.print_tb(trace_back)
-            break
+            # break
