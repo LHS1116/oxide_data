@@ -3,8 +3,10 @@ import hashlib
 import json
 import os
 import random
+import sys
 import threading
 import time
+import traceback
 from datetime import datetime
 from typing import Dict
 
@@ -873,14 +875,10 @@ def update_city_record(s):
         # print(province)
         cities = province['subList']
         timestamp = int(province['relativeTime'])
-        # print(datetime.fromtimestamp(timestamp))
         for city in cities:
             area = city['city']
             if city_name_dict.get(area) is None:
                 continue
-            # if city_name_dict.get(area) is None:
-            #     # print(area)
-            #     continue
             rec = Record()
             rec.areaId = city_name_dict.get(area)
             rec.total_cases = city['confirmed']
@@ -902,15 +900,13 @@ def update_city_record(s):
         print(f"[{datetime.now()}] update_record_cities Failed -- {resp.status_code}")
     else:
         print(f"[{datetime.now()}] update_record_cities Done")
-    print(res)
+    # print(res)
 
 
 def update_china_history(s):
     # url = f'https://voice.baidu.com/newpneumonia/getv2?target=trend&isCaseIn=1&from=mola-virus&area=全国&stage=publish'
     url = 'https://voice.baidu.com/act/newpneumonia/newpneumonia/?'
     r = requests.get(url)
-    # js = json.loads(r.text.encode().decode('unicode_escape').split('caseList')[1].split('caseOutsideList')[0][2:-1][:-1])
-    # print(js)
     data = r.text.encode().decode('unicode_escape').split('"trend":')[1].split(',"foreignLastUpdatedTime"')[0].split(
         'caseOutsideList')[0]
     trend = json.loads(data)
@@ -923,8 +919,7 @@ def update_china_history(s):
     for i in range(cnt - 1):
         lst = update_date[i].split('.')
         lst1 = update_date[i + 1].split('.')
-        # print(lst)
-        # print(lst1)
+
         if int(lst[0]) * 100 + int(lst[1]) > int(lst1[0]) * 100 + int(lst1[1]):
             flag = i
             break
@@ -1051,9 +1046,7 @@ def update_cn_history(s):
 
 
 def update_oversea_history(s):
-    dt = ['格陵兰岛']
-    # for name in country_dict_cn.keys():
-    for name in dt:
+    for name in country_dict_cn.keys():
         res = get_oversea_history(name)
         if len(res) != 0:
             resp = insert_instance_list(s, 'records', res)
@@ -1106,9 +1099,6 @@ def get_oversea_history(country):
             rec.total_cured = cured
             rec.total_deaths = deaths
             rec.present_cases = confirmed - deaths - cured
-            # if rec.present_cases < 0:
-            #     print(f'{confirmed} --- {deaths} --- {cured} --{item}')
-            #     return
             rec.areaId = country
             rec.id = f'record_{country}_{timestamp}'
             rec.new_cured = new_cured
@@ -1125,8 +1115,16 @@ def get_oversea_history(country):
 if __name__ == '__main__':
     init_vaccions()
     s = get_session()
-    update_china_history(s)
-    update_city_record(s)
-    update_oversea_history(s)
-    update_cn_history(s)
-    # print(get_oversea_history('缅甸'))
+    while True:
+        try:
+            update_china_history(s)
+            update_city_record(s)
+            update_oversea_history(s)
+            update_cn_history(s)
+            time.sleep(5 * 60)
+        except Exception as e:
+            trace_back = sys.exc_info()[2]
+            traceback.print_tb(trace_back)
+            break
+
+

@@ -1,6 +1,8 @@
 import hashlib
 import json
+import sys
 import time
+import traceback
 from datetime import datetime
 
 import requests
@@ -80,7 +82,6 @@ class News(object):
 
 
 #
-
 
 
 def sha_256(text):
@@ -340,18 +341,23 @@ def update_news(s):
     baidu_news = update_baidu_news(s)
     isaa_news = update_isaa_news(s)
     baidu_news.extend(isaa_news)
-    save_json(f'../news_{datetime.now().date()}.json', baidu_news)
+    save_json(f'../news_{datetime.now().date()}.json', isaa_news)
 
 
 def run():
     s = get_session()
-    update_news(s)
+    # update_news(s)
+    update_isaa_news(s)
     update_gov_reports(s)
     update_newly_risky_areas(s)
 
 
 if __name__ == '__main__':
-    # run()
-    update_baidu_news()
-    ns = get_isaa_news()
-    insert_instance_list(get_session(), 'news', ns)
+    while True:
+        try:
+            run()
+            time.sleep(5 * 60)
+        except Exception as e:
+            trace_back = sys.exc_info()[2]
+            traceback.print_tb(trace_back)
+            break

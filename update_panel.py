@@ -80,9 +80,16 @@ def get_yesterday_panel(s, area_id):
     return r[0]
 
 
+
+def save_json(save_path, data):
+    assert save_path.split('.')[-1] == 'json'
+    with open(save_path, 'w') as file:
+        json.dump(data, file, ensure_ascii=False)
+
 def get_panel_cn_and_i18n(s, html):
     bsobj = BeautifulSoup(html, 'html.parser')
     # cnt = bsobj.find_all('script', attrs={"class": "VirusSummarySix_1-1-306_3wCKWi"})
+    # print(bsobj.prettify())
     cnt = bsobj.find('script', attrs={"id": "captain-config"})
     cnt_str = cnt.string
 
@@ -93,6 +100,9 @@ def get_panel_cn_and_i18n(s, html):
     # print(data_dict.keys())
     newly_data_cn = data_dict['summaryDataIn']
     newly_data_i18n = data_dict['summaryDataOut']
+    # save_json('../data/panel_data_dict_2021-07-09.json', data_dict)
+    # save_json('../data/panel_cn_2021-07-09.json', newly_data_cn)
+    # save_json('../data/panel_i18n_2021-07-09.json', newly_data_i18n)
     cur_time = get_timestamp()
 
     vaccine_world, vaccine_cn = get_vaccine_count()
@@ -111,7 +121,7 @@ def get_panel_cn_and_i18n(s, html):
 
     panel_cn.vaccineDelta = panel_cn.vaccine - ystd_vaccines_cn
     panel_i18n.vaccineDelta = panel_i18n.vaccine - ystd_vaccines_i18n
-
+    #
     return panel_cn, panel_i18n
 
 
@@ -121,11 +131,11 @@ def update_panel_data():
     html = requests.get(url).text
     html = html.encode().decode('unicode_escape')
     s = get_session()
-
+    # get_panel_cn_and_i18n(s, html)
     panel_cn, panel_i18n = get_panel_cn_and_i18n(s, html)
     r1 = insert_panel(s, panel_cn)
     r2 = insert_panel(s, panel_i18n)
-
+    #
     print(f"[{datetime.now()}]update_panel r1:Status:{r1.status_code}, Data: {panel_cn.__dict__}\n "
           f"r2:Status:{r2.status_code}, Data: {panel_i18n.__dict__}")
 
@@ -137,6 +147,7 @@ def insert_panel(s, panel: Panel):
     return r
 
 
+
 if __name__ == '__main__':
     while True:
         try:
@@ -146,3 +157,4 @@ if __name__ == '__main__':
             trace_back = sys.exc_info()[2]
             traceback.print_tb(trace_back)
             break
+    # update_panel_data()
